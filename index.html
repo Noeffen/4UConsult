@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4U Consult – SAP Basis, S/4HANA &amp; Security aus Weinheim</title>
+<meta name="description" content="4U-Consult GmbH & Co. KG – SAP-Spezialist aus Weinheim seit 2001. SAP Basis, S/4HANA-Transformation, Security, Cloud und Testmanagement mit eigenen festangestellten Experten.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --bg: #14141B;
+    --bg-panel: #1A1A23;
+    --bg-panel-soft: rgba(255,255,255,0.025);
+    --line: rgba(255,255,255,0.09);
+    --line-soft: rgba(255,255,255,0.06);
+    --text: #F3F0EA;
+    --text-muted: #A6A1B3;
+    --text-faint: #6E6980;
+
+    --blue: #89AFCC;
+    --blue-soft: rgba(137,175,204,0.5);
+    --blue-glow: #B6D4E8;
+
+    --gold: #C9A66B;
+    --gold-hover: #DAB97F;
+    --gold-soft: rgba(201,166,107,0.16);
+
+    --display: 'Fraunces', serif;
+    --body: 'IBM Plex Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+
+    --r-lg: 28px;
+    --r-md: 18px;
+    --r-sm: 10px;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    font-size:16px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    position:relative;
+  }
+
+  /* soft ambient glow instead of a hard grid */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(137,175,204,0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 20%, rgba(201,166,107,0.06), transparent 60%);
+    pointer-events:none;
+    z-index:0;
+    animation:ambient-breathe 10s ease-in-out infinite;
+  }
+  @keyframes ambient-breathe{
+    0%,100%{ opacity:0.85; }
+    50%{ opacity:1; }
+  }
+
+  /* fixed layer of faint traveling current lines, echoing the diagonal seams */
+  .current-lines{
+    position:fixed; inset:0;
+    z-index:0;
+    pointer-events:none;
+    overflow:hidden;
+    will-change:transform;
+  }
+  .current-lines svg{
+    position:absolute; top:-10%; left:0;
+    width:100%; height:120%;
+  }
+  .mesh-line{
+    fill:none;
+    stroke-width:0.8;
+    stroke-linecap:round;
+  }
+  .mesh-line.blue{ stroke:var(--blue); }
+  .mesh-line.gold{ stroke:var(--gold); }
+
+  .mesh-pulse{
+    fill:none;
+    stroke-width:2;
+    stroke-linecap:round;
+    filter:blur(1.4px);
+    stroke-dasharray:0.05 0.95;
+    animation:travel linear infinite;
+  }
+  .mesh-pulse.blue{ stroke:var(--blue-glow); }
+  .mesh-pulse.gold{ stroke:var(--gold-hover); }
+
+  @keyframes travel{
+    0%{ stroke-dashoffset:1; opacity:0; }
+    6%{ opacity:0.85; }
+    94%{ opacity:0.85; }
+    100%{ stroke-dashoffset:-1; opacity:0; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    body::before{ animation:none; }
+    .mesh-pulse{ animation:none; opacity:0; }
+  }
+  @media (max-width:720px){
+    .current-lines{ opacity:0.55; }
+  }
+
+  a{ color:inherit; text-decoration:none; }
+
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:0.72rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    display:flex;
+    align-items:center;
+    gap:9px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:5px; height:5px;
+    border-radius:50%;
+    background:var(--gold);
+    display:inline-block;
+  }
+
+  h1,h2,h3{
+    font-family:var(--display);
+    font-weight:500;
+    letter-spacing:-0.01em;
+    line-height:1.14;
+  }
+  em, .accent-italic{
+    font-style:italic;
+    font-weight:400;
+    color:var(--blue-glow);
+  }
+
+  .wrap{
+    max-width:1160px;
+    margin:0 auto;
+    padding:0 32px;
+    position:relative;
+    z-index:1;
+  }
+
+  /* ---------- HEADER ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(20,20,27,0.72);
+    backdrop-filter:blur(14px);
+  }
+  header::after{
+    content:"";
+    position:absolute; left:6%; right:6%; bottom:0; height:1px;
+    background:linear-gradient(90deg, transparent, var(--line-soft) 20%, var(--line-soft) 80%, transparent);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 32px;
+    max-width:1160px; margin:0 auto;
+  }
+  .logo{
+    font-family:var(--display);
+    font-weight:500;
+    font-size:1.25rem;
+    letter-spacing:-0.01em;
+  }
+  .nav-links{
+    display:flex; align-items:center; gap:38px;
+    font-size:0.93rem;
+    color:var(--text-muted);
+  }
+  .nav-links a:not(.btn):hover{ color:var(--text); }
+
+  .btn{
+    font-family:var(--body);
+    font-size:0.9rem;
+    padding:11px 24px;
+    border-radius:999px;
+    border:1px solid var(--gold);
+    color:var(--gold);
+    transition:all 0.25s ease;
+    white-space:nowrap;
+    display:inline-block;
+  }
+  .btn:hover{ background:var(--gold-soft); }
+  .btn-solid{
+    background:var(--gold);
+    color:#1B1508;
+    border-color:var(--gold);
+  }
+  .btn-solid:hover{ background:var(--gold-hover); border-color:var(--gold-hover); }
+  .nav-cta{ display:none; }
+  @media(min-width:860px){ .nav-cta{ display:inline-block; } }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:90px 0 60px;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:52px;
+    align-items:center;
+  }
+  @media(min-width:960px){
+    .hero{ grid-template-columns:0.95fr 1.05fr; padding:120px 0 80px; gap:48px; }
+  }
+  .hero-copy h1{
+    font-size:2.5rem;
+    margin:22px 0 24px;
+    font-weight:500;
+  }
+  @media(min-width:640px){ .hero-copy h1{ font-size:3.4rem; } }
+  .hero-copy .sub{
+    font-size:1.08rem;
+    color:var(--text-muted);
+    max-width:44ch;
+    margin-bottom:36px;
+  }
+  .hero-actions{ display:flex; align-items:center; gap:26px; flex-wrap:wrap; }
+  .link-arrow{
+    font-size:0.94rem;
+    color:var(--text-muted);
+    border-bottom:1px solid transparent;
+    padding-bottom:2px;
+    transition:color 0.2s, border-color 0.2s;
+  }
+  .link-arrow:hover{ color:var(--blue-glow); border-color:var(--blue-soft); }
+
+  /* ---------- FOUNDATION DIAGRAM ---------- */
+  .diagram-frame{
+    border-radius:var(--r-lg);
+    background:radial-gradient(ellipse at 30% 20%, rgba(137,175,204,0.06), transparent 60%), var(--bg-panel);
+    border:1px solid var(--line-soft);
+    padding:36px 30px;
+    position:relative;
+  }
+
+  .diagram svg{ width:100%; height:auto; display:block; overflow:visible; }
+
+  .plate{
+    opacity:0;
+    transform:translateY(14px);
+    animation:rise 0.9s cubic-bezier(.22,1,.36,1) forwards;
+  }
+  @keyframes rise{ to{ opacity:1; transform:translateY(0); } }
+
+  .plate-dot{
+    opacity:0;
+    animation:fadein 0.7s ease forwards;
+  }
+  @keyframes fadein{ to{ opacity:1; } }
+
+  .plate-label{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.05em;
+    fill:var(--text-muted);
+  }
+  .plate-label.strong{ fill:var(--blue-glow); font-weight:500; }
+  .plate-caption{
+    font-family:var(--mono);
+    font-size:9.5px;
+    letter-spacing:0.06em;
+    fill:var(--text-faint);
+  }
+
+  .d1{ animation-delay:0.05s; }
+  .d2{ animation-delay:0.3s; }
+  .d3{ animation-delay:0.55s; }
+  .d4{ animation-delay:0.8s; }
+
+  /* ---------- diagram hover interaction ---------- */
+  .plate-hit{ cursor:pointer; }
+  .plate-hit .plate{
+    transition:stroke 0.35s ease, filter 0.35s ease, fill 0.35s ease;
+  }
+  .plate-hit .plate-dot{ transition:fill 0.3s ease; }
+  .plate-hit .plate-label{ transition:fill 0.3s ease; }
+
+  .plate-hit:hover .plate,
+  .plate-hit.is-active .plate{
+    stroke:var(--gold);
+    stroke-width:1.6;
+    filter:drop-shadow(0 0 12px rgba(201,166,107,0.4));
+  }
+  .plate-hit:hover .plate-dot,
+  .plate-hit.is-active .plate-dot{ fill:var(--gold); }
+  .plate-hit:hover .plate-label,
+  .plate-hit.is-active .plate-label{ fill:var(--gold); }
+
+  .diagram-frame{ position:relative; }
+
+  .diagram-tooltip{
+    position:absolute;
+    z-index:5;
+    max-width:230px;
+    background:linear-gradient(160deg, rgba(41,34,20,0.96), rgba(26,23,15,0.96));
+    border:1px solid var(--gold);
+    border-radius:12px;
+    padding:14px 16px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.35), 0 0 24px rgba(201,166,107,0.15);
+    opacity:0;
+    transform:translateY(6px);
+    transition:opacity 0.22s ease, transform 0.22s ease;
+    pointer-events:none;
+  }
+  .diagram-tooltip.is-visible{ opacity:1; transform:translateY(0); }
+  .diagram-tooltip-title{
+    font-family:var(--display);
+    font-style:italic;
+    font-size:1rem;
+    color:var(--gold);
+    margin-bottom:5px;
+  }
+  .diagram-tooltip-desc{
+    font-family:var(--body);
+    font-size:0.85rem;
+    line-height:1.45;
+    color:var(--text-muted);
+  }
+  @media(max-width:720px){
+    .diagram-tooltip{ display:none; }
+  }
+
+  .foundation-glow{
+    animation: pulse 3.6s ease-in-out infinite;
+    transform-origin:center;
+  }
+  @keyframes pulse{
+    0%,100%{ filter:drop-shadow(0 0 0px rgba(201,166,107,0.35)); }
+    50%{ filter:drop-shadow(0 0 10px rgba(201,166,107,0.45)); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .plate, .plate-dot{ animation:none; opacity:1; transform:none; }
+    .foundation-glow{ animation:none; }
+  }
+
+  /* ---------- STATS ---------- */
+  .stats{
+    position:relative;
+    clip-path:polygon(0 0, 100% 1.6%, 100% 100%, 0 98.4%);
+    background:linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01));
+    padding:64px 0 76px;
+    margin:6px 0;
+  }
+  .stats::before, .stats::after{
+    content:"";
+    position:absolute; left:10%; right:10%;
+    height:140px;
+    background:radial-gradient(ellipse, rgba(201,166,107,0.10), transparent 70%);
+    filter:blur(18px);
+    pointer-events:none;
+  }
+  .stats::before{ top:-70px; }
+  .stats::after{ bottom:-70px; }
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:36px;
+  }
+  @media(min-width:720px){ .stats-grid{ grid-template-columns:repeat(4,1fr); } }
+  .stat-num{
+    font-family:var(--display);
+    font-weight:500;
+    font-size:2.2rem;
+    color:var(--text);
+  }
+  .stat-num em{ color:var(--gold); }
+  .stat-label{
+    font-family:var(--mono);
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin-top:8px;
+  }
+
+  /* ---------- SECTION SHELL ---------- */
+  section{ padding:110px 0; position:relative; }
+  .section-head{ margin-bottom:60px; max-width:620px; }
+  .section-head h2{ font-size:2.1rem; margin-top:18px; font-weight:500; }
+  @media(min-width:640px){ .section-head h2{ font-size:2.5rem; } }
+  .section-head p{ color:var(--text-muted); margin-top:18px; font-size:1.04rem; }
+
+  /* ---------- SERVICES — soft list, not a card grid ---------- */
+  .service-row{
+    position:relative;
+    display:grid;
+    grid-template-columns:56px 1fr;
+    gap:24px;
+    padding:30px 0;
+    align-items:flex-start;
+  }
+  .service-row::after{
+    content:"";
+    position:absolute; left:2%; right:2%; bottom:0; height:1px;
+    background:linear-gradient(90deg, transparent, var(--line-soft) 25%, var(--line-soft) 75%, transparent);
+  }
+  .service-row:first-child::before{
+    content:"";
+    position:absolute; left:2%; right:2%; top:0; height:1px;
+    background:linear-gradient(90deg, transparent, var(--line-soft) 25%, var(--line-soft) 75%, transparent);
+  }
+  @media(min-width:720px){
+    .service-row{ grid-template-columns:56px 1fr 1.4fr; gap:32px; align-items:center; }
+  }
+
+  .icon-badge{
+    width:56px; height:56px;
+    border-radius:50%;
+    background:var(--bg-panel-soft);
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .icon-badge svg{ width:24px; height:24px; }
+
+  .service-row h3{
+    font-size:1.2rem;
+    font-weight:500;
+  }
+  .service-tag{
+    font-family:var(--mono);
+    font-size:0.65rem;
+    letter-spacing:0.09em;
+    color:var(--text-faint);
+    display:block;
+    margin-top:6px;
+  }
+  .service-row p{
+    color:var(--text-muted);
+    font-size:0.98rem;
+    margin-top:8px;
+  }
+  @media(min-width:720px){ .service-row p{ margin-top:0; } }
+
+  .services-footnote{
+    margin-top:34px;
+    font-size:0.95rem;
+    color:var(--text-faint);
+    font-style:italic;
+    font-family:var(--display);
+  }
+
+  /* ---------- WHY ---------- */
+  .why{
+    position:relative;
+    background:var(--bg-panel);
+    clip-path:polygon(0 0, 100% 2.2%, 100% 100%, 0 97.8%);
+    padding:96px 0 132px;
+  }
+  .why::before, .why::after{
+    content:"";
+    position:absolute; left:8%; right:8%;
+    height:160px;
+    background:radial-gradient(ellipse, rgba(137,175,204,0.09), transparent 70%);
+    filter:blur(20px);
+    pointer-events:none;
+  }
+  .why::before{ top:-80px; }
+  .why::after{ bottom:-80px; }
+  .why-grid{ display:grid; grid-template-columns:1fr; gap:0; }
+  @media(min-width:860px){ .why-grid{ grid-template-columns:0.85fr 1.15fr; gap:70px; align-items:start; } }
+
+  .why-list{ margin-top:8px; }
+  .why-item{
+    position:relative;
+    display:grid;
+    grid-template-columns:34px 1fr;
+    gap:20px;
+    padding:26px 0;
+  }
+  .why-item::after{
+    content:"";
+    position:absolute; left:2%; right:2%; bottom:0; height:1px;
+    background:linear-gradient(90deg, transparent, var(--line-soft) 25%, var(--line-soft) 75%, transparent);
+  }
+  .why-item:first-child{ padding-top:0; }
+  .why-mark{
+    font-family:var(--display);
+    font-style:italic;
+    font-size:1.3rem;
+    color:var(--gold);
+    padding-top:2px;
+  }
+  .why-item h3{ font-size:1.08rem; font-weight:500; margin-bottom:7px; }
+  .why-item p{ color:var(--text-muted); font-size:0.96rem; }
+
+  /* ---------- CONTACT ---------- */
+  .contact-panel{
+    border-radius:var(--r-lg);
+    background:var(--bg-panel-soft);
+    border:1px solid var(--line-soft);
+    padding:48px 34px;
+    display:grid;
+    gap:44px;
+  }
+  @media(min-width:860px){ .contact-panel{ grid-template-columns:0.9fr 1.1fr; padding:60px; } }
+
+  .contact-details{ display:flex; flex-direction:column; gap:26px; }
+  .contact-details .label{
+    font-family:var(--mono);
+    font-size:0.68rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin-bottom:5px;
+  }
+  .contact-details .value{ font-size:1.08rem; font-family:var(--display); }
+  .contact-details .value a:hover{ color:var(--blue-glow); }
+
+  form{ display:flex; flex-direction:column; gap:24px; }
+  .field label{
+    font-family:var(--mono);
+    font-size:0.68rem;
+    letter-spacing:0.07em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    display:block;
+    margin-bottom:9px;
+  }
+  .field input, .field textarea{
+    width:100%;
+    background:transparent;
+    border:none;
+    border-bottom:1px solid var(--line);
+    color:var(--text);
+    padding:8px 2px 12px;
+    font-family:var(--body);
+    font-size:0.98rem;
+    resize:vertical;
+    transition:border-color 0.2s;
+  }
+  .field input:focus, .field textarea:focus{
+    outline:none;
+    border-color:var(--gold);
+  }
+  form .btn{
+    align-self:flex-start;
+    border:none;
+    cursor:pointer;
+    margin-top:4px;
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer{ position:relative; padding:38px 0; }
+  footer::before{
+    content:"";
+    position:absolute; left:6%; right:6%; top:0; height:1px;
+    background:linear-gradient(90deg, transparent, var(--line-soft) 20%, var(--line-soft) 80%, transparent);
+  }
+  .footer-row{
+    display:flex; flex-direction:column; gap:16px;
+    font-size:0.86rem; color:var(--text-faint);
+  }
+  @media(min-width:640px){ .footer-row{ flex-direction:row; justify-content:space-between; align-items:center; } }
+  .footer-links{ display:flex; gap:26px; }
+  .footer-links a:hover{ color:var(--text-muted); }
+
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--blue);
+    outline-offset:2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="current-lines" aria-hidden="true">
+  <svg viewBox="0 0 400 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path class="mesh-line blue" d="M -20 40 L 420 260" style="opacity:0.11"/>
+    <path class="mesh-line gold" d="M 420 10 L 30 320" style="opacity:0.09"/>
+    <path class="mesh-line gold" d="M -20 300 L 300 170" style="opacity:0.08"/>
+    <path class="mesh-line blue" d="M 420 380 L 60 210" style="opacity:0.1"/>
+    <path class="mesh-line blue" d="M -20 470 L 420 640" style="opacity:0.1"/>
+    <path class="mesh-line gold" d="M 420 470 L 90 700" style="opacity:0.09"/>
+    <path class="mesh-line gold" d="M -20 640 L 260 520" style="opacity:0.07"/>
+    <path class="mesh-line blue" d="M 420 760 L 40 900" style="opacity:0.1"/>
+    <path class="mesh-line gold" d="M -20 830 L 420 900" style="opacity:0.08"/>
+
+    <path class="mesh-pulse blue" pathLength="1" d="M -20 40 L 420 260" style="animation-duration:13s; animation-delay:0.4s;"/>
+    <path class="mesh-pulse gold" pathLength="1" d="M 420 380 L 60 210" style="animation-duration:16s; animation-delay:4s;"/>
+    <path class="mesh-pulse gold" pathLength="1" d="M -20 470 L 420 640" style="animation-duration:19s; animation-delay:8s;"/>
+  </svg>
+</div>
+
+<header>
+  <div class="nav">
+    <a href="#top" class="logo">4U Consult</a>
+    <nav class="nav-links">
+      <a href="#leistungen">Leistungen</a>
+      <a href="#warum">Warum 4U</a>
+      <a href="#kontakt" class="nav-cta btn">Projekt besprechen</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <div class="wrap hero">
+    <div class="hero-copy">
+      <div class="eyebrow">SAP Basis · S/4HANA · Security — Weinheim, seit 2001</div>
+      <h1>Das <em>Fundament</em> Ihrer SAP-Landschaft.</h1>
+      <p class="sub">Wir tragen Ihre SAP-Systeme — von der Basis bis in die Cloud. Seit 25&nbsp;Jahren, mit eigenen festangestellten Spezialisten.</p>
+      <div class="hero-actions">
+        <a href="#kontakt" class="btn btn-solid">Projekt besprechen →</a>
+        <a href="#leistungen" class="link-arrow">Leistungen ansehen</a>
+      </div>
+    </div>
+
+    <div class="diagram-frame">
+      <div class="diagram">
+        <svg viewBox="0 0 600 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vier übereinander schwebende Ebenen: Ihr Unternehmen, S/4HANA und Cloud, Security und Testmanagement, und darunter, sanft hervorgehoben, das SAP-Basis-Fundament.">
+          <defs>
+            <linearGradient id="plate1" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#232431"/>
+              <stop offset="1" stop-color="#1D1E29"/>
+            </linearGradient>
+            <linearGradient id="plate2" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#212430"/>
+              <stop offset="1" stop-color="#1B1E29"/>
+            </linearGradient>
+            <linearGradient id="plate3" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#1F2330"/>
+              <stop offset="1" stop-color="#1A1D28"/>
+            </linearGradient>
+            <linearGradient id="foundation" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#3A3324"/>
+              <stop offset="1" stop-color="#2B2718"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Plate 1: Ihr Unternehmen -->
+          <g class="plate-hit d1" data-title="Ihr Unternehmen" data-desc="Anwendungen, Prozesse und Fachbereiche, die täglich auf SAP arbeiten.">
+            <rect class="plate d1" x="70" y="10" width="380" height="66" rx="16" fill="url(#plate1)" stroke="rgba(255,255,255,0.08)"/>
+            <circle class="plate-dot d1" cx="474" cy="43" r="3" fill="var(--text-faint)"/>
+            <text class="plate-label d1" x="486" y="40">IHR UNTERNEHMEN</text>
+            <text class="plate-caption d1" x="486" y="54">Anwendungen &amp; Prozesse</text>
+          </g>
+
+          <!-- Plate 2: S/4HANA + Cloud -->
+          <g class="plate-hit d2" data-title="S/4HANA &amp; Cloud" data-desc="Migration, Transformation und stabiler Betrieb Ihrer Systeme.">
+            <rect class="plate d2" x="70" y="96" width="380" height="66" rx="16" fill="url(#plate2)" stroke="rgba(255,255,255,0.08)"/>
+            <circle class="plate-dot d2" cx="474" cy="129" r="3" fill="var(--text-faint)"/>
+            <text class="plate-label d2" x="486" y="126">S/4HANA · CLOUD</text>
+            <text class="plate-caption d2" x="486" y="140">Transformation &amp; Betrieb</text>
+          </g>
+
+          <!-- Plate 3: Security + Test -->
+          <g class="plate-hit d3" data-title="Security &amp; Tests" data-desc="Berechtigungen, Absicherung und geprüfte Änderungen vor dem Go-Live.">
+            <rect class="plate d3" x="70" y="182" width="380" height="66" rx="16" fill="url(#plate3)" stroke="rgba(255,255,255,0.08)"/>
+            <circle class="plate-dot d3" cx="474" cy="215" r="3" fill="var(--text-faint)"/>
+            <text class="plate-label d3" x="486" y="212">SECURITY · TESTS</text>
+            <text class="plate-caption d3" x="486" y="226">Absicherung &amp; Prüfung</text>
+          </g>
+
+          <!-- Foundation: SAP Basis -->
+          <g class="plate-hit d4" data-title="SAP Basis" data-desc="Kernel, Datenbank, Betriebssystem — das Fundament seit 2001.">
+            <g class="foundation-glow">
+              <rect class="plate d4" x="70" y="272" width="380" height="82" rx="18" fill="url(#foundation)" stroke="rgba(201,166,107,0.4)"/>
+            </g>
+            <circle class="plate-dot d4" cx="474" cy="307" r="3" fill="var(--gold)"/>
+            <text class="plate-label strong d4" x="486" y="304">SAP BASIS</text>
+            <text class="plate-caption d4" x="486" y="318">Kernel · Datenbank · Betriebssystem</text>
+            <text class="plate-caption d4" x="486" y="332">seit 2001</text>
+          </g>
+
+          <text class="plate-caption" x="70" y="392" style="font-style:italic">Mittelstand bis DAX-Konzern — getragen von festangestellten Spezialisten.</text>
+        </svg>
+        <div class="diagram-tooltip" id="diagramTooltip">
+          <div class="diagram-tooltip-title"></div>
+          <div class="diagram-tooltip-desc"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="wrap stats-grid">
+      <div>
+        <div class="stat-num"><em>25</em></div>
+        <div class="stat-label">Jahre am Markt</div>
+      </div>
+      <div>
+        <div class="stat-num">2001</div>
+        <div class="stat-label">Gegründet in Weinheim</div>
+      </div>
+      <div>
+        <div class="stat-num">Mittelstand–DAX</div>
+        <div class="stat-label">Kundenspektrum</div>
+      </div>
+      <div>
+        <div class="stat-num"><em>100</em>%</div>
+        <div class="stat-label">Festangestellte Spezialisten</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVICES -->
+  <section id="leistungen">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Was wir tragen</div>
+        <h2>Leistungen</h2>
+        <p>Fünf Ebenen, ein Ziel: Ihre SAP-Landschaft läuft — heute und in fünf Jahren.</p>
+      </div>
+
+      <div class="services-list">
+        <div class="service-row">
+          <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="8" width="22" height="14" rx="3"/><path d="M8 26 Q20 20 32 26 L32 30 Q20 24 8 30 Z"/></svg></div>
+          <div>
+            <h3>SAP Basis</h3>
+            <span class="service-tag">FUNDAMENT</span>
+          </div>
+          <p>Kernel, Datenbank, Betriebssystem — die Ebene, die alles andere trägt.</p>
+        </div>
+
+        <div class="service-row">
+          <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="7" width="22" height="7" rx="3"/><rect x="9" y="17" width="22" height="7" rx="3"/><rect x="9" y="27" width="22" height="7" rx="3"/></svg></div>
+          <div>
+            <h3>S/4HANA-Umstieg</h3>
+            <span class="service-tag">TRANSFORMATION</span>
+          </div>
+          <p>Migration und Umstieg, technisch sauber geplant und umgesetzt.</p>
+        </div>
+
+        <div class="service-row">
+          <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 L32 11 V19 C32 27 27 32 20 34 C13 32 8 27 8 19 V11 Z"/><path d="M15 20 L18.5 23.5 L26 15"/></svg></div>
+          <div>
+            <h3>Security</h3>
+            <span class="service-tag">ABSICHERUNG</span>
+          </div>
+          <p>SAP-Systeme abgesichert — von der Berechtigung bis zur Infrastruktur.</p>
+        </div>
+
+        <div class="service-row">
+          <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 26 C7.5 26 6 21.5 9 19 C8 13.5 15 10.5 18.5 13.5 C21 8.5 29 9.5 30 15.5 C34 15.5 35 22 30 24 Z"/></svg></div>
+          <div>
+            <h3>Cloud</h3>
+            <span class="service-tag">BETRIEB</span>
+          </div>
+          <p>Hybride und Cloud-Landschaften, stabil im laufenden Betrieb.</p>
+        </div>
+
+        <div class="service-row">
+          <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="6" width="20" height="28" rx="4"/><path d="M15 16 L18 19 L25 12 M15 24 H25"/></svg></div>
+          <div>
+            <h3>Testmanagement</h3>
+            <span class="service-tag">PRÜFUNG</span>
+          </div>
+          <p>Änderungen geprüft, bevor sie produktiv geschaltet werden.</p>
+        </div>
+
+        <div class="service-row">
+          <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="14" r="4.5"/><circle cx="27" cy="14" r="4.5"/><path d="M6 32 C6 24.5 11 21.5 15 21.5 C17 21.5 18.7 22.2 20 23.3"/><path d="M20 23.3 C21.3 22.2 23 21.5 25 21.5 C29 21.5 34 24.5 34 32"/></svg></div>
+          <div>
+            <h3>Organisation &amp; Change</h3>
+            <span class="service-tag">AUF ANFRAGE</span>
+          </div>
+          <p>Für Vorhaben, bei denen Technik allein nicht reicht.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY -->
+  <section id="warum" class="why">
+    <div class="wrap why-grid">
+      <div class="section-head" style="margin-bottom:0">
+        <div class="eyebrow">Warum 4U</div>
+        <h2>Kein Outsourcing. <em>Keine Fluktuation.</em></h2>
+        <p>Ein Team, das bleibt — solange Ihre Systeme laufen.</p>
+      </div>
+
+      <div class="why-list">
+        <div class="why-item">
+          <div class="why-mark">·</div>
+          <div><h3>Eigene, festangestellte Spezialisten</h3><p>Keine externen Freelancer, keine wechselnden Ansprechpartner.</p></div>
+        </div>
+        <div class="why-item">
+          <div class="why-mark">·</div>
+          <div><h3>Seit 2001 im SAP-Umfeld</h3><p>25 Jahre durchgängige Erfahrung — keine Neugründung, kein Umweg.</p></div>
+        </div>
+        <div class="why-item">
+          <div class="why-mark">·</div>
+          <div><h3>Vom Mittelstand bis zum DAX-Konzern</h3><p>Erfahrung mit kleinen wie hochkomplexen SAP-Landschaften.</p></div>
+        </div>
+        <div class="why-item">
+          <div class="why-mark">·</div>
+          <div><h3>Ein Ansprechpartner, das ganze Projekt</h3><p>Von der ersten Analyse bis zum stabilen Betrieb.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="kontakt">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Kontakt</div>
+        <h2>Sprechen wir über <em>Ihr Fundament.</em></h2>
+        <p>Kurzes Gespräch, klare nächste Schritte.</p>
+      </div>
+
+      <div class="contact-panel">
+        <div class="contact-details">
+          <div class="item">
+            <div class="label">Telefon</div>
+            <div class="value"><a href="tel:+4962012601050">+49 6201 26010&nbsp;50</a></div>
+          </div>
+          <div class="item">
+            <div class="label">Standort</div>
+            <div class="value">Kopernikusstraße 43<br>69469 Weinheim</div>
+          </div>
+          <div class="item">
+            <div class="label">Erreichbarkeit</div>
+            <div class="value" style="color:var(--text-muted); font-size:0.95rem; font-family:var(--body);">Mo – Fr, 9:00 – 17:00 Uhr</div>
+          </div>
+        </div>
+
+        <form>
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" type="text" name="name" required>
+          </div>
+          <div class="field">
+            <label for="email">E-Mail</label>
+            <input id="email" type="email" name="email" required>
+          </div>
+          <div class="field">
+            <label for="message">Worum geht es?</label>
+            <textarea id="message" name="message" rows="3" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-solid">Anfrage senden →</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap footer-row">
+    <div>© 2026 4U-Consult GmbH &amp; Co. KG · Weinheim</div>
+    <div class="footer-links">
+      <a href="#">Impressum</a>
+      <a href="#">Datenschutz</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var layer = document.querySelector('.current-lines');
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!layer || reduceMotion) return;
+
+    var ticking = false;
+    function update(){
+      var y = window.scrollY || window.pageYOffset;
+      var offset = Math.min(y * 0.12, 220);
+      var drift = Math.sin(y * 0.002) * 14;
+      layer.style.transform = 'translate3d(' + drift.toFixed(1) + 'px, ' + (-offset).toFixed(1) + 'px, 0)';
+      ticking = false;
+    }
+    window.addEventListener('scroll', function(){
+      if (!ticking){
+        window.requestAnimationFrame(update);
+        ticking = true;
+      }
+    }, { passive: true });
+    update();
+  })();
+
+  // Diagram hover tooltip
+  (function(){
+    var frame = document.querySelector('.diagram-frame');
+    var tooltip = document.getElementById('diagramTooltip');
+    if (!frame || !tooltip) return;
+    var titleEl = tooltip.querySelector('.diagram-tooltip-title');
+    var descEl = tooltip.querySelector('.diagram-tooltip-desc');
+    var plates = frame.querySelectorAll('.plate-hit');
+    var isTouch = window.matchMedia('(hover: none)').matches;
+
+    function showFor(el){
+      plates.forEach(function(p){ p.classList.remove('is-active'); });
+      el.classList.add('is-active');
+
+      titleEl.textContent = el.getAttribute('data-title');
+      descEl.textContent = el.getAttribute('data-desc');
+
+      var frameRect = frame.getBoundingClientRect();
+      var plateRect = el.querySelector('.plate').getBoundingClientRect();
+
+      var top = (plateRect.top - frameRect.top) + (plateRect.height / 2) - 20;
+      var left = (plateRect.left - frameRect.left) + plateRect.width - 40;
+
+      var maxLeft = frame.clientWidth - 246;
+      if (left > maxLeft) left = maxLeft;
+      if (left < 12) left = 12;
+
+      tooltip.style.top = top + 'px';
+      tooltip.style.left = left + 'px';
+      tooltip.classList.add('is-visible');
+    }
+
+    function hideAll(){
+      plates.forEach(function(p){ p.classList.remove('is-active'); });
+      tooltip.classList.remove('is-visible');
+    }
+
+    plates.forEach(function(el){
+      el.addEventListener('mouseenter', function(){ showFor(el); });
+      el.addEventListener('focus', function(){ showFor(el); });
+      el.setAttribute('tabindex', '0');
+
+      if (isTouch){
+        el.addEventListener('click', function(e){
+          e.stopPropagation();
+          var alreadyActive = el.classList.contains('is-active');
+          hideAll();
+          if (!alreadyActive) showFor(el);
+        });
+      }
+    });
+
+    frame.addEventListener('mouseleave', hideAll);
+    frame.addEventListener('focusout', function(e){
+      if (!frame.contains(e.relatedTarget)) hideAll();
+    });
+    document.addEventListener('click', function(e){
+      if (isTouch && !frame.contains(e.target)) hideAll();
+    });
+  })();
+</script>
+</body>
+</html>
