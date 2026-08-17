@@ -38,15 +38,13 @@
   }
 
   *{ margin:0; padding:0; box-sizing:border-box; }
-  html{ scroll-behavior:smooth; scrollbar-color: rgba(201,166,107,0.4) #14141B; scrollbar-width:thin; }
+  html{ scroll-behavior:smooth; scrollbar-width:none; -ms-overflow-style:none; }
 
   ::selection{ background:#C9A66B; color:#1B1508; }
   ::-moz-selection{ background:#C9A66B; color:#1B1508; }
 
-  ::-webkit-scrollbar{ width:9px; }
-  ::-webkit-scrollbar-track{ background:#14141B; }
-  ::-webkit-scrollbar-thumb{ background:rgba(201,166,107,0.32); border-radius:10px; border:2px solid #14141B; }
-  ::-webkit-scrollbar-thumb:hover{ background:rgba(201,166,107,0.5); }
+  html::-webkit-scrollbar{ display:none; width:0; height:0; }
+  body::-webkit-scrollbar{ display:none; width:0; height:0; }
 
   body{
     background:var(--bg);
