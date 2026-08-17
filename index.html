@@ -38,7 +38,15 @@
   }
 
   *{ margin:0; padding:0; box-sizing:border-box; }
-  html{ scroll-behavior:smooth; }
+  html{ scroll-behavior:smooth; scrollbar-color: rgba(201,166,107,0.4) #14141B; scrollbar-width:thin; }
+
+  ::selection{ background:#C9A66B; color:#1B1508; }
+  ::-moz-selection{ background:#C9A66B; color:#1B1508; }
+
+  ::-webkit-scrollbar{ width:9px; }
+  ::-webkit-scrollbar-track{ background:#14141B; }
+  ::-webkit-scrollbar-thumb{ background:rgba(201,166,107,0.32); border-radius:10px; border:2px solid #14141B; }
+  ::-webkit-scrollbar-thumb:hover{ background:rgba(201,166,107,0.5); }
 
   body{
     background:var(--bg);
@@ -65,6 +73,36 @@
     0%,100%{ opacity:0.85; }
     50%{ opacity:1; }
   }
+
+  /* faint film-grain texture for tactile depth */
+  body::after{
+    content:"";
+    position:fixed; inset:0;
+    z-index:60;
+    pointer-events:none;
+    opacity:0.035;
+    mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:180px 180px;
+  }
+
+  /* scroll progress rail — a quiet callback to the diagram's dimension line */
+  .scroll-rail{
+    position:fixed;
+    right:26px; top:50%;
+    transform:translateY(-50%);
+    width:1px; height:180px;
+    background:rgba(255,255,255,0.08);
+    z-index:40;
+    pointer-events:none;
+    display:none;
+  }
+  .scroll-rail-fill{
+    position:absolute; top:0; left:0; width:100%; height:0%;
+    background:var(--gold);
+    box-shadow:0 0 8px rgba(201,166,107,0.55);
+  }
+  @media(min-width:1300px){ .scroll-rail{ display:block; } }
 
   /* fixed layer of faint traveling current lines, echoing the diagonal seams */
   .current-lines{
@@ -182,25 +220,40 @@
   .nav-links a:not(.btn):hover{ color:var(--text); }
 
   .btn{
+    position:relative;
     font-family:var(--body);
-    font-size:0.9rem;
-    padding:11px 24px;
-    border-radius:999px;
-    border:1px solid var(--gold);
+    font-weight:500;
+    font-size:0.98rem;
     color:var(--gold);
-    transition:all 0.25s ease;
     white-space:nowrap;
-    display:inline-block;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding-bottom:5px;
+    cursor:pointer;
+    background:none;
+    border:none;
   }
-  .btn:hover{ background:var(--gold-soft); }
-  .btn-solid{
+  .btn::after{
+    content:"";
+    position:absolute; left:0; bottom:0;
+    width:100%; height:1px;
     background:var(--gold);
-    color:#1B1508;
-    border-color:var(--gold);
+    opacity:0.45;
+    transform:scaleX(0.35);
+    transform-origin:left;
+    transition:transform 0.35s cubic-bezier(.22,1,.36,1), opacity 0.35s ease;
   }
-  .btn-solid:hover{ background:var(--gold-hover); border-color:var(--gold-hover); }
+  .btn:hover::after{ transform:scaleX(1); opacity:1; }
+  .btn span.arrow{ transition:transform 0.3s ease; display:inline-block; }
+  .btn:hover span.arrow{ transform:translateX(4px); }
+
+  .btn-solid{
+    font-size:1.02rem;
+    font-weight:500;
+  }
   .nav-cta{ display:none; }
-  @media(min-width:860px){ .nav-cta{ display:inline-block; } }
+  @media(min-width:860px){ .nav-cta{ display:inline-flex; } }
 
   /* ---------- HERO ---------- */
   .hero{
@@ -244,6 +297,8 @@
     position:relative;
   }
 
+  .diagram{ overflow:hidden; border-radius:calc(var(--r-lg) - 20px); }
+
   .diagram svg{ width:100%; height:auto; display:block; overflow:visible; }
 
   .plate{
@@ -279,7 +334,7 @@
   .d4{ animation-delay:0.8s; }
 
   /* ---------- diagram hover interaction ---------- */
-  .plate-hit{ cursor:pointer; }
+  .plate-hit{ cursor:pointer; outline:none; }
   .plate-hit .plate{
     transition:stroke 0.35s ease, filter 0.35s ease, fill 0.35s ease;
   }
@@ -287,14 +342,17 @@
   .plate-hit .plate-label{ transition:fill 0.3s ease; }
 
   .plate-hit:hover .plate,
+  .plate-hit:focus-visible .plate,
   .plate-hit.is-active .plate{
     stroke:var(--gold);
     stroke-width:1.6;
     filter:drop-shadow(0 0 12px rgba(201,166,107,0.4));
   }
   .plate-hit:hover .plate-dot,
+  .plate-hit:focus-visible .plate-dot,
   .plate-hit.is-active .plate-dot{ fill:var(--gold); }
   .plate-hit:hover .plate-label,
+  .plate-hit:focus-visible .plate-label,
   .plate-hit.is-active .plate-label{ fill:var(--gold); }
 
   .diagram-frame{ position:relative; }
@@ -392,57 +450,69 @@
   @media(min-width:640px){ .section-head h2{ font-size:2.5rem; } }
   .section-head p{ color:var(--text-muted); margin-top:18px; font-size:1.04rem; }
 
-  /* ---------- SERVICES — soft list, not a card grid ---------- */
-  .service-row{
-    position:relative;
+  /* ---------- SERVICES — floating 3D tilt cards ---------- */
+  .services-grid-3d{
     display:grid;
-    grid-template-columns:56px 1fr;
-    gap:24px;
-    padding:30px 0;
-    align-items:flex-start;
+    grid-template-columns:1fr;
+    gap:22px;
   }
-  .service-row::after{
-    content:"";
-    position:absolute; left:2%; right:2%; bottom:0; height:1px;
-    background:linear-gradient(90deg, transparent, var(--line-soft) 25%, var(--line-soft) 75%, transparent);
+  @media(min-width:640px){ .services-grid-3d{ grid-template-columns:repeat(2,1fr); } }
+  @media(min-width:1040px){ .services-grid-3d{ grid-template-columns:repeat(3,1fr); } }
+
+  .tilt-card{ perspective:1000px; }
+
+  .tilt-card-inner{
+    position:relative;
+    height:100%;
+    border-radius:22px;
+    padding:36px 28px;
+    background:
+      radial-gradient(120% 140% at 20% 0%, rgba(255,255,255,0.05), transparent 55%),
+      linear-gradient(165deg, #1D1E28, #17181F);
+    border:1px solid rgba(255,255,255,0.055);
+    box-shadow:0 18px 40px -18px rgba(0,0,0,0.55);
+    transform-style:preserve-3d;
+    transform:rotateX(0deg) rotateY(0deg);
+    transition:transform 0.5s cubic-bezier(.22,1,.36,1), box-shadow 0.5s ease, border-color 0.5s ease;
   }
-  .service-row:first-child::before{
-    content:"";
-    position:absolute; left:2%; right:2%; top:0; height:1px;
-    background:linear-gradient(90deg, transparent, var(--line-soft) 25%, var(--line-soft) 75%, transparent);
-  }
-  @media(min-width:720px){
-    .service-row{ grid-template-columns:56px 1fr 1.4fr; gap:32px; align-items:center; }
+  .tilt-card:hover .tilt-card-inner{
+    border-color:rgba(201,166,107,0.28);
+    box-shadow:0 26px 55px -18px rgba(0,0,0,0.6), 0 0 30px -8px rgba(201,166,107,0.18);
   }
 
-  .icon-badge{
+  .tilt-card .icon-badge{
     width:56px; height:56px;
     border-radius:50%;
-    background:var(--bg-panel-soft);
+    background:rgba(255,255,255,0.03);
     border:1px solid var(--line);
     display:flex; align-items:center; justify-content:center;
-    flex-shrink:0;
+    transform:translateZ(46px);
+    transition:transform 0.5s cubic-bezier(.22,1,.36,1), border-color 0.4s ease;
   }
-  .icon-badge svg{ width:24px; height:24px; }
+  .tilt-card:hover .icon-badge{ border-color:rgba(201,166,107,0.4); }
+  .tilt-card .icon-badge svg{ width:24px; height:24px; }
 
-  .service-row h3{
-    font-size:1.2rem;
+  .tilt-card h3{
+    font-size:1.18rem;
     font-weight:500;
+    margin-top:22px;
+    transform:translateZ(30px);
   }
-  .service-tag{
+  .tilt-card .service-tag{
     font-family:var(--mono);
-    font-size:0.65rem;
+    font-size:0.63rem;
     letter-spacing:0.09em;
     color:var(--text-faint);
     display:block;
     margin-top:6px;
+    transform:translateZ(24px);
   }
-  .service-row p{
+  .tilt-card p{
     color:var(--text-muted);
-    font-size:0.98rem;
-    margin-top:8px;
+    font-size:0.96rem;
+    margin-top:14px;
+    transform:translateZ(18px);
   }
-  @media(min-width:720px){ .service-row p{ margin-top:0; } }
 
   .services-footnote{
     margin-top:34px;
@@ -497,6 +567,26 @@
   .why-item p{ color:var(--text-muted); font-size:0.96rem; }
 
   /* ---------- CONTACT ---------- */
+  .contact-toggle{
+    margin-bottom:44px;
+  }
+  .contact-toggle .chevron{
+    display:inline-block;
+    font-size:1.1rem;
+    line-height:1;
+    transition:transform 0.45s cubic-bezier(.22,1,.36,1);
+    transform:translateY(1px);
+  }
+  .contact-toggle[aria-expanded="true"] .chevron{ transform:rotate(180deg) translateY(-1px); }
+
+  .contact-collapsible{
+    display:grid;
+    grid-template-rows:0fr;
+    transition:grid-template-rows 0.65s cubic-bezier(.22,1,.36,1);
+  }
+  .contact-collapsible.is-open{ grid-template-rows:1fr; }
+  .contact-collapsible-inner{ overflow:hidden; min-height:0; }
+
   .contact-panel{
     border-radius:var(--r-lg);
     background:var(--bg-panel-soft);
@@ -504,6 +594,14 @@
     padding:48px 34px;
     display:grid;
     gap:44px;
+    opacity:0;
+    transform:translateY(-10px);
+    transition:opacity 0.4s ease, transform 0.5s cubic-bezier(.22,1,.36,1);
+  }
+  .contact-collapsible.is-open .contact-panel{
+    opacity:1;
+    transform:translateY(0);
+    transition-delay:0.18s;
   }
   @media(min-width:860px){ .contact-panel{ grid-template-columns:0.9fr 1.1fr; padding:60px; } }
 
@@ -593,13 +691,15 @@
   </svg>
 </div>
 
+<div class="scroll-rail" aria-hidden="true"><div class="scroll-rail-fill" id="scrollRailFill"></div></div>
+
 <header>
   <div class="nav">
     <a href="#top" class="logo">4U Consult</a>
     <nav class="nav-links">
       <a href="#leistungen">Leistungen</a>
       <a href="#warum">Warum 4U</a>
-      <a href="#kontakt" class="nav-cta btn">Projekt besprechen</a>
+      <a href="#kontakt" class="nav-cta btn">Projekt besprechen <span class="arrow">→</span></a>
     </nav>
   </div>
 </header>
@@ -613,14 +713,14 @@
       <h1>Das <em>Fundament</em> Ihrer SAP-Landschaft.</h1>
       <p class="sub">Wir tragen Ihre SAP-Systeme — von der Basis bis in die Cloud. Seit 25&nbsp;Jahren, mit eigenen festangestellten Spezialisten.</p>
       <div class="hero-actions">
-        <a href="#kontakt" class="btn btn-solid">Projekt besprechen →</a>
+        <a href="#kontakt" class="btn btn-solid">Projekt besprechen <span class="arrow">→</span></a>
         <a href="#leistungen" class="link-arrow">Leistungen ansehen</a>
       </div>
     </div>
 
     <div class="diagram-frame">
       <div class="diagram">
-        <svg viewBox="0 0 600 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vier übereinander schwebende Ebenen: Ihr Unternehmen, S/4HANA und Cloud, Security und Testmanagement, und darunter, sanft hervorgehoben, das SAP-Basis-Fundament.">
+        <svg viewBox="0 0 640 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vier übereinander schwebende Ebenen: Ihr Unternehmen, S/4HANA und Cloud, Security und Testmanagement, und darunter, sanft hervorgehoben, das SAP-Basis-Fundament.">
           <defs>
             <linearGradient id="plate1" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0" stop-color="#232431"/>
@@ -671,16 +771,16 @@
             </g>
             <circle class="plate-dot d4" cx="474" cy="307" r="3" fill="var(--gold)"/>
             <text class="plate-label strong d4" x="486" y="304">SAP BASIS</text>
-            <text class="plate-caption d4" x="486" y="318">Kernel · Datenbank · Betriebssystem</text>
+            <text class="plate-caption d4" x="486" y="318">Kernel · Datenbank · OS</text>
             <text class="plate-caption d4" x="486" y="332">seit 2001</text>
           </g>
 
           <text class="plate-caption" x="70" y="392" style="font-style:italic">Mittelstand bis DAX-Konzern — getragen von festangestellten Spezialisten.</text>
         </svg>
-        <div class="diagram-tooltip" id="diagramTooltip">
-          <div class="diagram-tooltip-title"></div>
-          <div class="diagram-tooltip-desc"></div>
-        </div>
+      </div>
+      <div class="diagram-tooltip" id="diagramTooltip">
+        <div class="diagram-tooltip-title"></div>
+        <div class="diagram-tooltip-desc"></div>
       </div>
     </div>
   </div>
@@ -716,59 +816,59 @@
         <p>Fünf Ebenen, ein Ziel: Ihre SAP-Landschaft läuft — heute und in fünf Jahren.</p>
       </div>
 
-      <div class="services-list">
-        <div class="service-row">
-          <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="8" width="22" height="14" rx="3"/><path d="M8 26 Q20 20 32 26 L32 30 Q20 24 8 30 Z"/></svg></div>
-          <div>
+      <div class="services-grid-3d">
+        <div class="tilt-card">
+          <div class="tilt-card-inner">
+            <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="8" width="22" height="14" rx="3"/><path d="M8 26 Q20 20 32 26 L32 30 Q20 24 8 30 Z"/></svg></div>
             <h3>SAP Basis</h3>
             <span class="service-tag">FUNDAMENT</span>
+            <p>Kernel, Datenbank, Betriebssystem — die Ebene, die alles andere trägt.</p>
           </div>
-          <p>Kernel, Datenbank, Betriebssystem — die Ebene, die alles andere trägt.</p>
         </div>
 
-        <div class="service-row">
-          <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="7" width="22" height="7" rx="3"/><rect x="9" y="17" width="22" height="7" rx="3"/><rect x="9" y="27" width="22" height="7" rx="3"/></svg></div>
-          <div>
+        <div class="tilt-card">
+          <div class="tilt-card-inner">
+            <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="7" width="22" height="7" rx="3"/><rect x="9" y="17" width="22" height="7" rx="3"/><rect x="9" y="27" width="22" height="7" rx="3"/></svg></div>
             <h3>S/4HANA-Umstieg</h3>
             <span class="service-tag">TRANSFORMATION</span>
+            <p>Migration und Umstieg, technisch sauber geplant und umgesetzt.</p>
           </div>
-          <p>Migration und Umstieg, technisch sauber geplant und umgesetzt.</p>
         </div>
 
-        <div class="service-row">
-          <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 L32 11 V19 C32 27 27 32 20 34 C13 32 8 27 8 19 V11 Z"/><path d="M15 20 L18.5 23.5 L26 15"/></svg></div>
-          <div>
+        <div class="tilt-card">
+          <div class="tilt-card-inner">
+            <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 L32 11 V19 C32 27 27 32 20 34 C13 32 8 27 8 19 V11 Z"/><path d="M15 20 L18.5 23.5 L26 15"/></svg></div>
             <h3>Security</h3>
             <span class="service-tag">ABSICHERUNG</span>
+            <p>SAP-Systeme abgesichert — von der Berechtigung bis zur Infrastruktur.</p>
           </div>
-          <p>SAP-Systeme abgesichert — von der Berechtigung bis zur Infrastruktur.</p>
         </div>
 
-        <div class="service-row">
-          <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 26 C7.5 26 6 21.5 9 19 C8 13.5 15 10.5 18.5 13.5 C21 8.5 29 9.5 30 15.5 C34 15.5 35 22 30 24 Z"/></svg></div>
-          <div>
+        <div class="tilt-card">
+          <div class="tilt-card-inner">
+            <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 26 C7.5 26 6 21.5 9 19 C8 13.5 15 10.5 18.5 13.5 C21 8.5 29 9.5 30 15.5 C34 15.5 35 22 30 24 Z"/></svg></div>
             <h3>Cloud</h3>
             <span class="service-tag">BETRIEB</span>
+            <p>Hybride und Cloud-Landschaften, stabil im laufenden Betrieb.</p>
           </div>
-          <p>Hybride und Cloud-Landschaften, stabil im laufenden Betrieb.</p>
         </div>
 
-        <div class="service-row">
-          <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="6" width="20" height="28" rx="4"/><path d="M15 16 L18 19 L25 12 M15 24 H25"/></svg></div>
-          <div>
+        <div class="tilt-card">
+          <div class="tilt-card-inner">
+            <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="6" width="20" height="28" rx="4"/><path d="M15 16 L18 19 L25 12 M15 24 H25"/></svg></div>
             <h3>Testmanagement</h3>
             <span class="service-tag">PRÜFUNG</span>
+            <p>Änderungen geprüft, bevor sie produktiv geschaltet werden.</p>
           </div>
-          <p>Änderungen geprüft, bevor sie produktiv geschaltet werden.</p>
         </div>
 
-        <div class="service-row">
-          <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="14" r="4.5"/><circle cx="27" cy="14" r="4.5"/><path d="M6 32 C6 24.5 11 21.5 15 21.5 C17 21.5 18.7 22.2 20 23.3"/><path d="M20 23.3 C21.3 22.2 23 21.5 25 21.5 C29 21.5 34 24.5 34 32"/></svg></div>
-          <div>
+        <div class="tilt-card">
+          <div class="tilt-card-inner">
+            <div class="icon-badge"><svg viewBox="0 0 40 40" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="14" r="4.5"/><circle cx="27" cy="14" r="4.5"/><path d="M6 32 C6 24.5 11 21.5 15 21.5 C17 21.5 18.7 22.2 20 23.3"/><path d="M20 23.3 C21.3 22.2 23 21.5 25 21.5 C29 21.5 34 24.5 34 32"/></svg></div>
             <h3>Organisation &amp; Change</h3>
             <span class="service-tag">AUF ANFRAGE</span>
+            <p>Für Vorhaben, bei denen Technik allein nicht reicht.</p>
           </div>
-          <p>Für Vorhaben, bei denen Technik allein nicht reicht.</p>
         </div>
       </div>
     </div>
@@ -813,37 +913,46 @@
         <p>Kurzes Gespräch, klare nächste Schritte.</p>
       </div>
 
-      <div class="contact-panel">
-        <div class="contact-details">
-          <div class="item">
-            <div class="label">Telefon</div>
-            <div class="value"><a href="tel:+4962012601050">+49 6201 26010&nbsp;50</a></div>
-          </div>
-          <div class="item">
-            <div class="label">Standort</div>
-            <div class="value">Kopernikusstraße 43<br>69469 Weinheim</div>
-          </div>
-          <div class="item">
-            <div class="label">Erreichbarkeit</div>
-            <div class="value" style="color:var(--text-muted); font-size:0.95rem; font-family:var(--body);">Mo – Fr, 9:00 – 17:00 Uhr</div>
+      <button type="button" class="btn contact-toggle" id="contactToggle" aria-expanded="false" aria-controls="contactCollapse">
+        <span class="toggle-label">Kontaktdaten &amp; Formular anzeigen</span>
+        <span class="chevron">⌄</span>
+      </button>
+
+      <div class="contact-collapsible" id="contactCollapse">
+        <div class="contact-collapsible-inner">
+          <div class="contact-panel">
+            <div class="contact-details">
+              <div class="item">
+                <div class="label">Telefon</div>
+                <div class="value"><a href="tel:+4962012601050">+49 6201 26010&nbsp;50</a></div>
+              </div>
+              <div class="item">
+                <div class="label">Standort</div>
+                <div class="value">Kopernikusstraße 43<br>69469 Weinheim</div>
+              </div>
+              <div class="item">
+                <div class="label">Erreichbarkeit</div>
+                <div class="value" style="color:var(--text-muted); font-size:0.95rem; font-family:var(--body);">Mo – Fr, 9:00 – 17:00 Uhr</div>
+              </div>
+            </div>
+
+            <form>
+              <div class="field">
+                <label for="name">Name</label>
+                <input id="name" type="text" name="name" required>
+              </div>
+              <div class="field">
+                <label for="email">E-Mail</label>
+                <input id="email" type="email" name="email" required>
+              </div>
+              <div class="field">
+                <label for="message">Worum geht es?</label>
+                <textarea id="message" name="message" rows="3" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-solid">Anfrage senden <span class="arrow">→</span></button>
+            </form>
           </div>
         </div>
-
-        <form>
-          <div class="field">
-            <label for="name">Name</label>
-            <input id="name" type="text" name="name" required>
-          </div>
-          <div class="field">
-            <label for="email">E-Mail</label>
-            <input id="email" type="email" name="email" required>
-          </div>
-          <div class="field">
-            <label for="message">Worum geht es?</label>
-            <textarea id="message" name="message" rows="3" required></textarea>
-          </div>
-          <button type="submit" class="btn btn-solid">Anfrage senden →</button>
-        </form>
       </div>
     </div>
   </section>
@@ -942,6 +1051,84 @@
     document.addEventListener('click', function(e){
       if (isTouch && !frame.contains(e.target)) hideAll();
     });
+  })();
+
+  // 3D tilt on the service cards
+  (function(){
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var isTouch = window.matchMedia('(hover: none)').matches;
+    if (reduceMotion || isTouch) return;
+
+    var cards = document.querySelectorAll('.tilt-card');
+    cards.forEach(function(card){
+      var inner = card.querySelector('.tilt-card-inner');
+      var maxTilt = 9;
+
+      card.addEventListener('mousemove', function(e){
+        var rect = card.getBoundingClientRect();
+        var x = (e.clientX - rect.left) / rect.width;
+        var y = (e.clientY - rect.top) / rect.height;
+        var rotateY = (x - 0.5) * maxTilt * 2;
+        var rotateX = (0.5 - y) * maxTilt * 2;
+        inner.style.transition = 'box-shadow 0.5s ease, border-color 0.5s ease';
+        inner.style.transform = 'rotateX(' + rotateX.toFixed(2) + 'deg) rotateY(' + rotateY.toFixed(2) + 'deg) scale(1.015)';
+      });
+
+      card.addEventListener('mouseleave', function(){
+        inner.style.transition = 'transform 0.6s cubic-bezier(.22,1,.36,1), box-shadow 0.5s ease, border-color 0.5s ease';
+        inner.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
+      });
+    });
+  })();
+
+  // Collapsible contact panel
+  (function(){
+    var toggle = document.getElementById('contactToggle');
+    var collapse = document.getElementById('contactCollapse');
+    if (!toggle || !collapse) return;
+    var label = toggle.querySelector('.toggle-label');
+
+    function setOpen(isOpen){
+      collapse.classList.toggle('is-open', isOpen);
+      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      label.textContent = isOpen
+        ? 'Kontaktdaten & Formular ausblenden'
+        : 'Kontaktdaten & Formular anzeigen';
+    }
+
+    toggle.addEventListener('click', function(){
+      var willOpen = !collapse.classList.contains('is-open');
+      setOpen(willOpen);
+      if (willOpen){
+        setTimeout(function(){
+          collapse.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 250);
+      }
+    });
+
+    document.querySelectorAll('a[href="#kontakt"]').forEach(function(link){
+      link.addEventListener('click', function(){
+        setOpen(true);
+      });
+    });
+  })();
+
+  // Scroll progress rail
+  (function(){
+    var fill = document.getElementById('scrollRailFill');
+    if (!fill) return;
+    var ticking = false;
+    function update(){
+      var scrollTop = window.scrollY || window.pageYOffset;
+      var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      var pct = docHeight > 0 ? Math.min(100, (scrollTop / docHeight) * 100) : 0;
+      fill.style.height = pct + '%';
+      ticking = false;
+    }
+    window.addEventListener('scroll', function(){
+      if (!ticking){ window.requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+    update();
   })();
 </script>
 </body>
