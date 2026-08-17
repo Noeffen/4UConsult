@@ -615,7 +615,38 @@
   .contact-details .value{ font-size:1.08rem; font-family:var(--display); }
   .contact-details .value a:hover{ color:var(--blue-glow); }
 
+  .trust-list{
+    list-style:none;
+    margin-top:6px;
+    padding-top:26px;
+    border-top:1px solid var(--line-soft);
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .trust-list li{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    font-size:0.9rem;
+    color:var(--text-muted);
+    line-height:1.5;
+  }
+  .trust-list .check{
+    color:var(--gold);
+    font-size:0.85rem;
+    margin-top:2px;
+    flex-shrink:0;
+  }
+
   form{ display:flex; flex-direction:column; gap:24px; }
+  .field-row{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:24px;
+  }
+  @media(min-width:520px){ .field-row{ grid-template-columns:1fr 1fr; } }
+
   .field label{
     font-family:var(--mono);
     font-size:0.68rem;
@@ -625,7 +656,9 @@
     display:block;
     margin-bottom:9px;
   }
-  .field input, .field textarea{
+  .field label .optional{ text-transform:none; letter-spacing:0; color:var(--text-faint); opacity:0.7; }
+
+  .field input, .field textarea, .field select{
     width:100%;
     background:transparent;
     border:none;
@@ -637,10 +670,32 @@
     resize:vertical;
     transition:border-color 0.2s;
   }
-  .field input:focus, .field textarea:focus{
+  .field select{
+    appearance:none;
+    -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A66B' stroke-width='1.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 4px center;
+    cursor:pointer;
+  }
+  .field select option{ background:#1A1A23; color:var(--text); }
+  .field input:focus, .field textarea:focus, .field select:focus{
     outline:none;
     border-color:var(--gold);
   }
+  .form-privacy-note{
+    font-size:0.8rem;
+    color:var(--text-faint);
+    line-height:1.6;
+    margin-top:-4px;
+  }
+  .form-privacy-note .inline-link{
+    color:var(--text-muted);
+    text-decoration:underline;
+    text-underline-offset:2px;
+  }
+  .form-privacy-note .inline-link:hover{ color:var(--gold); }
+
   form .btn{
     align-self:flex-start;
     border:none;
@@ -932,22 +987,58 @@
                 <div class="label">Erreichbarkeit</div>
                 <div class="value" style="color:var(--text-muted); font-size:0.95rem; font-family:var(--body);">Mo – Fr, 9:00 – 17:00 Uhr</div>
               </div>
+
+              <ul class="trust-list">
+                <li><span class="check">✓</span> Persönliches Gespräch mit einem SAP-Spezialisten</li>
+                <li><span class="check">✓</span> Antwort innerhalb eines Werktags</li>
+                <li><span class="check">✓</span> Vertraulichkeit selbstverständlich — NDA auf Wunsch vorab</li>
+              </ul>
             </div>
 
             <form>
-              <div class="field">
-                <label for="name">Name</label>
-                <input id="name" type="text" name="name" required>
+              <div class="field-row">
+                <div class="field">
+                  <label for="name">Name</label>
+                  <input id="name" type="text" name="name" required autocomplete="name">
+                </div>
+                <div class="field">
+                  <label for="company">Unternehmen</label>
+                  <input id="company" type="text" name="company" required autocomplete="organization">
+                </div>
               </div>
-              <div class="field">
-                <label for="email">E-Mail</label>
-                <input id="email" type="email" name="email" required>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="email">E-Mail</label>
+                  <input id="email" type="email" name="email" required autocomplete="email">
+                </div>
+                <div class="field">
+                  <label for="phone">Telefon <span class="optional">(optional)</span></label>
+                  <input id="phone" type="tel" name="phone" autocomplete="tel">
+                </div>
               </div>
+
               <div class="field">
-                <label for="message">Worum geht es?</label>
+                <label for="topic">Anliegen</label>
+                <select id="topic" name="topic" required>
+                  <option value="" disabled selected>Bitte wählen</option>
+                  <option value="sap-basis">SAP Basis</option>
+                  <option value="s4hana">S/4HANA-Umstieg</option>
+                  <option value="security">Security</option>
+                  <option value="cloud">Cloud</option>
+                  <option value="testmanagement">Testmanagement</option>
+                  <option value="organisation">Organisation &amp; Change</option>
+                  <option value="sonstiges">Sonstiges / noch unklar</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="message">Worum geht es genau?</label>
                 <textarea id="message" name="message" rows="3" required></textarea>
               </div>
+
               <button type="submit" class="btn btn-solid">Anfrage senden <span class="arrow">→</span></button>
+              <p class="form-privacy-note">Mit dem Absenden akzeptieren Sie unsere <a href="#" class="inline-link">Datenschutzerklärung</a>. Ihre Angaben werden vertraulich behandelt.</p>
             </form>
           </div>
         </div>
